@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UTCC 活動診断 — UTCCに入ったら何をしよう？</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brown-dark:  #3E2723;
+      --brown-mid:   #6D4C41;
+      --brown-light: #A1887F;
+      --cream:       #FFF8F0;
+      --cream-dark:  #F0E6D3;
+      --gold:        #C8960C;
+      --white:       #FFFFFF;
+      --shadow:      0 4px 24px rgba(62, 39, 35, 0.12);
+      --shadow-hover: 0 8px 32px rgba(62, 39, 35, 0.22);
+      --radius:      18px;
+      --transition:  0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: var(--cream);
+      color: var(--brown-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px 48px;
+    }
+
+    /* ─── Header ─────────────────────────────── */
+    header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .logo {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: var(--brown-light);
+      text-transform: uppercase;
+    }
+
+    /* ─── Card ──────────────────────────────── */
+    .card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 40px 36px 36px;
+      max-width: 480px;
+      width: 100%;
+      animation: fadeUp 0.4s var(--transition) both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Start screen ──────────────────────── */
+    #screen-start .coffee-icon {
+      font-size: 64px;
+      display: block;
+      text-align: center;
+      margin-bottom: 16px;
+      filter: drop-shadow(0 2px 8px rgba(168,110,50,.3));
+    }
+    #screen-start h1 {
+      font-size: 22px;
+      font-weight: 900;
+      text-align: center;
+      line-height: 1.5;
+      color: var(--brown-dark);
+      margin-bottom: 12px;
+    }
+    #screen-start p {
+      text-align: center;
+      font-size: 14px;
+      color: var(--brown-light);
+      line-height: 1.8;
+      margin-bottom: 32px;
+    }
+
+    /* ─── Question screen ──────────────────── */
+    .progress-bar-wrap {
+      height: 4px;
+      background: var(--cream-dark);
+      border-radius: 99px;
+      margin-bottom: 28px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--brown-mid), var(--gold));
+      border-radius: 99px;
+      transition: width var(--transition);
+    }
+    .q-step {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--brown-light);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .q-text {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.6;
+      color: var(--brown-dark);
+      margin-bottom: 28px;
+    }
+
+    /* ─── Buttons ──────────────────────────── */
+    .choices {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .choice-btn {
+      display: block;
+      width: 100%;
+      padding: 16px 20px;
+      border: 2px solid var(--cream-dark);
+      border-radius: 12px;
+      background: var(--cream);
+      color: var(--brown-dark);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+      transition: border-color var(--transition), background var(--transition), transform var(--transition), box-shadow var(--transition);
+    }
+    .choice-btn:hover {
+      border-color: var(--brown-mid);
+      background: var(--white);
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+    .choice-btn:active { transform: translateY(0); }
+
+    .btn-primary {
+      display: inline-block;
+      padding: 16px 40px;
+      background: linear-gradient(135deg, var(--brown-dark) 0%, var(--brown-mid) 100%);
+      color: var(--white);
+      border: none;
+      border-radius: 99px;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform var(--transition), box-shadow var(--transition);
+      box-shadow: 0 4px 16px rgba(62,39,35,0.25);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(62,39,35,0.35);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+      display: inline-block;
+      padding: 12px 28px;
+      background: transparent;
+      color: var(--brown-mid);
+      border: 2px solid var(--brown-light);
+      border-radius: 99px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition);
+    }
+    .btn-secondary:hover {
+      background: var(--cream-dark);
+    }
+
+    .btn-center { text-align: center; }
+
+    /* ─── Result screen ────────────────────── */
+    #screen-result .result-icon {
+      font-size: 72px;
+      display: block;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    #screen-result .result-label {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    #screen-result h2 {
+      text-align: center;
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--brown-dark);
+      line-height: 1.4;
+      margin-bottom: 16px;
+    }
+    #screen-result .result-tagline {
+      text-align: center;
+      font-size: 14px;
+      color: var(--brown-light);
+      line-height: 1.8;
+      margin-bottom: 28px;
+    }
+    .result-detail {
+      background: var(--cream);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 28px;
+    }
+    .result-detail h3 {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--brown-mid);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+    .result-detail ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .result-detail li {
+      font-size: 14px;
+      color: var(--brown-dark);
+      line-height: 1.6;
+      padding-left: 20px;
+      position: relative;
+    }
+    .result-detail li::before {
+      content: '☕';
+      position: absolute;
+      left: 0;
+      font-size: 12px;
+    }
+    .result-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* ─── Divider ──────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--cream-dark);
+      margin: 28px 0;
+    }
+
+    /* ─── Hidden ───────────────────────────── */
+    .hidden { display: none !important; }
+
+    /* ─── Responsive ──────────────────────── */
+    @media (max-width: 500px) {
+      .card { padding: 32px 24px 28px; }
+      .q-text { font-size: 18px; }
+      #screen-start h1 { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <p class="logo">☕ UTCC — University of Tokyo Coffee Club</p>
+  </header>
+
+  <!-- ══════ START SCREEN ══════ -->
+  <div class="card" id="screen-start">
+    <span class="coffee-icon">☕</span>
+    <h1>UTCCに入ったら<br>まず何をしよう？</h1>
+    <p>
+      いくつかの質問に答えると、<br>
+      あなたにぴったりの最初の一歩を<br>
+      提案します！
+    </p>
+    <div class="btn-center">
+      <button class="btn-primary" id="btn-start">診断スタート →</button>
+    </div>
+  </div>
+
+  <!-- ══════ QUESTION SCREEN ══════ -->
+  <div class="card hidden" id="screen-question">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+    </div>
+    <p class="q-step" id="q-step"></p>
+    <p class="q-text" id="q-text"></p>
+    <div class="choices" id="choices"></div>
+  </div>
+
+  <!-- ══════ RESULT SCREEN ══════ -->
+  <div class="card hidden" id="screen-result">
+    <span class="result-icon" id="result-icon"></span>
+    <p class="result-label">診断結果</p>
+    <h2 id="result-title"></h2>
+    <p class="result-tagline" id="result-tagline"></p>
+    <div class="divider"></div>
+    <div class="result-detail">
+      <h3>こんな活動です</h3>
+      <ul id="result-details"></ul>
+    </div>
+    <div class="result-actions">
+      <button class="btn-primary" id="btn-retry">もう一度診断する</button>
+      <button class="btn-secondary" id="btn-other">他の活動も見てみる</button>
+    </div>
+  </div>
+
+  <!-- ══════ ALL RESULTS SCREEN ══════ -->
+  <div class="card hidden" id="screen-all">
+    <h2 style="font-size:18px;font-weight:900;margin-bottom:20px;">UTCCの活動一覧</h2>
+    <div id="all-results-list"></div>
+    <div class="btn-center" style="margin-top:24px;">
+      <button class="btn-secondary" id="btn-back-from-all">← 診断に戻る</button>
+    </div>
+  </div>
+
+  <script>
+    // ── Data ──────────────────────────────────────────────
+    const questions = [
+      {
+        id: 'q1',
+        step: '質問 1 / 3',
+        progress: 33,
+        text: 'コーヒーについて、今どのくらい知っていますか？',
+        choices: [
+          { label: 'あまり知らない、これから興味を持ちたい', next: 'result_teireikai' },
+          { label: 'ある程度知っている、もっと深めたい',    next: 'q2' }
+        ]
+      },
+      {
+        id: 'q2',
+        step: '質問 2 / 3',
+        progress: 66,
+        text: '新しいカフェを開拓したり、\nカフェ巡りをするのが好きですか？',
+        choices: [
+          { label: 'はい！カフェが大好き、いろんな店に行きたい', next: 'result_cafe' },
+          { label: 'カフェより自分でコーヒーを作る方が好き',     next: 'q3' }
+        ]
+      },
+      {
+        id: 'q3',
+        step: '質問 3 / 3',
+        progress: 100,
+        text: 'ラテアートに挑戦してみたい、\nまたはもっと上手くなりたいですか？',
+        choices: [
+          { label: 'ぜひやってみたい！ラテアートに憧れる', next: 'result_lateart' },
+          { label: 'まずはコーヒーの基礎知識から学びたい', next: 'result_teireikai' }
+        ]
+      }
+    ];
+
+    const results = {
+      result_teireikai: {
+        icon: '📚',
+        title: '定例会に参加してみよう！',
+        tagline: 'コーヒーの世界に飛び込む最初の一歩。\n知識ゼロでも大歓迎、みんなと一緒に学べます。',
+        details: [
+          'コーヒーの種類・産地・焙煎など基礎知識を楽しく学べる',
+          '毎週メンバーが集まって試飲しながら語り合う',
+          '初心者も多く、気軽に参加できる雰囲気',
+          'コーヒー好きな仲間づくりにもぴったり'
+        ]
+      },
+      result_cafe: {
+        icon: '🗺️',
+        title: 'カフェ巡りに参加してみよう！',
+        tagline: '東京の素敵なカフェを仲間と一緒に開拓しよう。\n新しい発見がきっと待っています。',
+        details: [
+          '東京都内のこだわりカフェを少人数でめぐる活動',
+          'おいしいコーヒーを飲みながらカフェの雰囲気を満喫',
+          '新しいカフェの情報交換や開拓が好きな人に最適',
+          '気軽に参加できて、会話も弾む！'
+        ]
+      },
+      result_lateart: {
+        icon: '🎨',
+        title: 'ラテアート会に参加してみよう！',
+        tagline: 'ミルクでアートを描く、クリエイティブな体験を。\n初心者からプロ志向まで楽しめます。',
+        details: [
+          'エスプレッソマシンを使ったラテアートを練習',
+          '初心者からでも丁寧にレクチャー',
+          'ハートやリーフなど定番から応用デザインまで',
+          '作ったラテアートを写真に撮ってSNS映えも◎'
+        ]
+      }
+    };
+
+    // ── State ─────────────────────────────────────────────
+    let currentQuestion = 'q1';
+    let lastResult = null;
+
+    // ── Helpers ───────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+
+    function show(screenId) {
+      ['screen-start', 'screen-question', 'screen-result', 'screen-all'].forEach(id => {
+        $(id).classList.toggle('hidden', id !== screenId);
+      });
+      // Re-trigger animation
+      const el = $(screenId);
+      el.style.animation = 'none';
+      el.getBoundingClientRect(); // reflow
+      el.style.animation = '';
+    }
+
+    function renderQuestion(qId) {
+      const q = questions.find(x => x.id === qId);
+      if (!q) return;
+      currentQuestion = qId;
+      $('q-step').textContent = q.step;
+      $('q-text').textContent = q.text;
+      $('progress-bar').style.width = q.progress + '%';
+      const choicesEl = $('choices');
+      choicesEl.innerHTML = '';
+      q.choices.forEach(choice => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.textContent = choice.label;
+        btn.addEventListener('click', () => navigate(choice.next));
+        choicesEl.appendChild(btn);
+      });
+      show('screen-question');
+    }
+
+    function renderResult(resultId) {
+      const r = results[resultId];
+      if (!r) return;
+      lastResult = resultId;
+      $('result-icon').textContent = r.icon;
+      $('result-title').textContent = r.title;
+      $('result-tagline').textContent = r.tagline;
+      const ul = $('result-details');
+      ul.innerHTML = '';
+      r.details.forEach(d => {
+        const li = document.createElement('li');
+        li.textContent = d;
+        ul.appendChild(li);
+      });
+      show('screen-result');
+    }
+
+    function renderAllResults() {
+      const container = $('all-results-list');
+      container.innerHTML = '';
+      Object.entries(results).forEach(([id, r]) => {
+        const div = document.createElement('div');
+        div.style.cssText = 'margin-bottom:20px;';
+        const isLast = id === Object.keys(results).pop();
+        div.innerHTML = `
+          <div style="display:flex;align-items:flex-start;gap:14px;">
+            <span style="font-size:32px;line-height:1;">${r.icon}</span>
+            <div>
+              <p style="font-size:15px;font-weight:700;color:var(--brown-dark);margin-bottom:6px;">${r.title}</p>
+              <p style="font-size:13px;color:var(--brown-light);line-height:1.7;">${r.tagline.replace(/\n/g, '<br>')}</p>
+            </div>
+          </div>
+          ${!isLast ? '<div class="divider" style="margin:20px 0 0;"></div>' : ''}
+        `;
+        container.appendChild(div);
+      });
+      show('screen-all');
+    }
+
+    function navigate(target) {
+      if (target.startsWith('q')) {
+        renderQuestion(target);
+      } else {
+        renderResult(target);
+      }
+    }
+
+    // ── Events ────────────────────────────────────────────
+    $('btn-start').addEventListener('click', () => renderQuestion('q1'));
+    $('btn-retry').addEventListener('click', () => {
+      renderQuestion('q1');
+    });
+    $('btn-other').addEventListener('click', () => renderAllResults());
+    $('btn-back-from-all').addEventListener('click', () => {
+      if (lastResult) renderResult(lastResult);
+      else renderQuestion('q1');
+    });
+  </script>
+</body>
+</html>
