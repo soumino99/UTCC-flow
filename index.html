@@ -94,11 +94,20 @@
     .progress-meta {
       margin-bottom: 16px;
       display: flex;
-        justify-content: space-between;
+      justify-content: space-between;
       align-items: center;
       font-size: 12px;
       color: var(--brown-light);
       font-weight: 700;
+    }
+    .progress-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .confidence-face {
+      font-size: 18px;
+      line-height: 1;
     }
       .progress-bar-wrap {
         height: 4px;
@@ -337,7 +346,11 @@
         <div class="progress-bar" id="progress-bar" style="width: 0%" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="質問進捗"></div>
       </div>
     <div class="progress-meta">
-      <span id="progress-count">0 / 24問</span>
+      <div class="progress-status">
+        <span class="confidence-face" id="confidence-face">🤔</span>
+        <span id="confidence-text">確信度 17%</span>
+      </div>
+      <span id="progress-count">0問回答</span>
     </div>
     <p class="q-text" id="q-text"></p>
     <div class="choices" id="choices"></div>
@@ -665,6 +678,21 @@
       return best >= CONFIDENCE_TOP_PROB && (best - second) >= CONFIDENCE_MARGIN;
     }
 
+    function getConfidenceDisplay() {
+      const scores = getCategoryScores();
+      const probabilities = getCategoryProbabilities(scores);
+      const topProbability = Math.max(...Object.values(probabilities));
+      const percent = Math.round(topProbability * 100);
+
+      let emoji = '🤔';
+      if (percent >= 85) emoji = '😎';
+      else if (percent >= 70) emoji = '😏';
+      else if (percent >= 55) emoji = '🙂';
+      else if (percent >= 40) emoji = '😐';
+
+      return { emoji, percent };
+    }
+
     function determineResult() {
       const scores = getCategoryScores();
       const tieOrder = [
@@ -690,10 +718,13 @@
       const answeredCount = Object.keys(answers).length;
       const step = answeredCount + 1;
       const percent = Math.round((step / MAX_QUESTIONS) * 100);
+      const confidence = getConfidenceDisplay();
       $('q-text').textContent = q.text;
       $('progress-bar').style.width = percent + '%';
       $('progress-bar').setAttribute('aria-valuenow', String(percent));
-      $('progress-count').textContent = `${step} / ${MAX_QUESTIONS}問`;
+      $('confidence-face').textContent = confidence.emoji;
+      $('confidence-text').textContent = `確信度 ${confidence.percent}%`;
+      $('progress-count').textContent = `${answeredCount}問回答`;
       const choicesEl = $('choices');
       choicesEl.innerHTML = '';
 
