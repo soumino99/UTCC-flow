@@ -575,9 +575,20 @@
           const expectedYes = profile[qid];
           if (expectedYes === undefined) return;
           const expected = expectedYes ? 'yes' : 'no';
-          scores[category] += answer === expected ? 2 : -1;
+          if (answer === expected) {
+            scores[category] += expectedYes ? 2 : 1;
+          } else {
+            scores[category] -= 1;
+          }
         });
       });
+
+      const cafeCoreYesCount = ['q3', 'q13'].reduce((count, qid) => {
+        return count + (answers[qid] === 'yes' ? 1 : 0);
+      }, 0);
+
+      if (cafeCoreYesCount === 0) scores.result_cafe -= 4;
+      else if (cafeCoreYesCount === 2) scores.result_cafe += 2;
 
       return scores;
     }
