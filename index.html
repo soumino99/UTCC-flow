@@ -337,7 +337,7 @@
         <div class="progress-bar" id="progress-bar" style="width: 0%" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="質問進捗"></div>
       </div>
     <div class="progress-meta">
-      <span id="progress-count">0 / 12問</span>
+      <span id="progress-count">0 / 24問</span>
     </div>
     <p class="q-text" id="q-text"></p>
     <div class="choices" id="choices"></div>
@@ -375,23 +375,37 @@
 
   <script>
     // ── Data ──────────────────────────────────────────────
-    const MAX_QUESTIONS = 12;
-    const MIN_QUESTIONS_FOR_RESULT = 6;
-    const CONFIDENCE_THRESHOLD = 3;
+    const MAX_QUESTIONS = 24;
+    const MIN_QUESTIONS_FOR_RESULT = 10;
+    const CONFIDENCE_TOP_PROB = 0.72;
+    const CONFIDENCE_MARGIN = 0.18;
+    const ANSWER_RELIABILITY = 0.82;
 
     const questions = [
-      { id: 'q1', text: 'コーヒーそのものは好き？' },
-      { id: 'q2', text: '初対面の人とも話せる場が好き？' },
-      { id: 'q3', text: 'コーヒーの理論を体系的に学びたい？' },
-      { id: 'q4', text: '味や香りの違いを言語化して共有したい？' },
-      { id: 'q5', text: '家で淹れる習慣を作りたい？' },
-      { id: 'q6', text: 'ハンドドリップの再現性を上げたい？' },
-      { id: 'q7', text: 'エスプレッソマシンに触れてみたい？' },
-      { id: 'q8', text: 'ラテアートを本気で練習したい？' },
-      { id: 'q9', text: '焙煎を最初から最後までやってみたい？' },
-      { id: 'q10', text: '新しいカフェを開拓するのが好き？' },
-      { id: 'q11', text: '競技会レベルのこだわりにも興味がある？' },
-      { id: 'q12', text: 'イベントを運営側で作る役割に興味がある？' }
+      { id: 'q1', text: '理論を体系的に学ぶ方が好き？' },
+      { id: 'q2', text: '飲むより淹れる工程そのものが好き？' },
+      { id: 'q3', text: '家より外で活動する方が好き？' },
+      { id: 'q4', text: '一人の研究より会話中心の場が好き？' },
+      { id: 'q5', text: '味や香りを言語化するのが楽しい？' },
+      { id: 'q6', text: '器具のセッティングを詰めるのが好き？' },
+      { id: 'q7', text: '短時間で目に見える成果がほしい？' },
+      { id: 'q8', text: '時間をかけて地道に改善する方が好き？' },
+      { id: 'q9', text: '生豆の状態から関わってみたい？' },
+      { id: 'q10', text: 'ミルクを使うメニューに惹かれる？' },
+      { id: 'q11', text: '専門店の講義を受ける機会に魅力を感じる？' },
+      { id: 'q12', text: '企画運営や広報にも興味がある？' },
+      { id: 'q13', text: '同じ店より新規開拓の方がワクワクする？' },
+      { id: 'q14', text: '週次でコツコツ積み上げるのが得意？' },
+      { id: 'q15', text: '大人数で役割分担する場が好き？' },
+      { id: 'q16', text: '再現性（毎回同じ味）を強く重視する？' },
+      { id: 'q17', text: '産地・精製・焙煎度の話題に惹かれる？' },
+      { id: 'q18', text: '人に提供して喜ばれる体験が好き？' },
+      { id: 'q19', text: '記録を取りながら改善するのが好き？' },
+      { id: 'q20', text: '当日運営より事前準備が得意？' },
+      { id: 'q21', text: '見た目の表現（アート性）を重視したい？' },
+      { id: 'q22', text: '焙煎違いの比較検証を細かくやりたい？' },
+      { id: 'q23', text: '最初は幅広く触ってから絞りたい？' },
+      { id: 'q24', text: '裏方の達成感にやりがいを感じる？' }
     ];
     const questionMap = Object.fromEntries(questions.map(q => [q.id, q]));
 
@@ -479,28 +493,40 @@
 
     const categoryProfiles = {
       result_teireikai: {
-        q1: true, q2: false, q3: true, q4: false, q5: true, q6: true,
-        q7: false, q8: false, q9: false, q10: false, q11: true, q12: false
+        q1: true, q2: true, q3: false, q4: false, q5: true, q6: true,
+        q7: false, q8: true, q9: false, q10: false, q11: true, q12: false,
+        q13: false, q14: true, q15: false, q16: true, q17: true, q18: false,
+        q19: true, q20: false, q21: false, q22: true, q23: true, q24: false
       },
       result_cafe: {
-        q1: true, q2: true, q3: false, q4: false, q5: false, q6: false,
-        q7: false, q8: false, q9: false, q10: true, q11: false, q12: false
+        q1: false, q2: false, q3: true, q4: true, q5: false, q6: false,
+        q7: true, q8: false, q9: false, q10: false, q11: false, q12: false,
+        q13: true, q14: false, q15: true, q16: false, q17: false, q18: true,
+        q19: false, q20: false, q21: true, q22: false, q23: true, q24: false
       },
       result_roast: {
-        q1: true, q2: false, q3: true, q4: false, q5: true, q6: false,
-        q7: false, q8: false, q9: true, q10: false, q11: true, q12: false
+        q1: true, q2: true, q3: false, q4: false, q5: false, q6: true,
+        q7: false, q8: true, q9: true, q10: false, q11: false, q12: false,
+        q13: false, q14: true, q15: false, q16: true, q17: true, q18: false,
+        q19: true, q20: true, q21: false, q22: true, q23: false, q24: true
       },
       result_espresso: {
-        q1: true, q2: false, q3: false, q4: false, q5: true, q6: false,
-        q7: true, q8: true, q9: false, q10: false, q11: true, q12: false
+        q1: false, q2: true, q3: false, q4: false, q5: false, q6: true,
+        q7: true, q8: true, q9: false, q10: true, q11: false, q12: false,
+        q13: false, q14: true, q15: false, q16: true, q17: false, q18: true,
+        q19: false, q20: false, q21: true, q22: false, q23: false, q24: false
       },
       result_seminar: {
-        q1: true, q2: false, q3: true, q4: true, q5: false, q6: false,
-        q7: false, q8: false, q9: false, q10: false, q11: true, q12: false
+        q1: true, q2: false, q3: false, q4: false, q5: true, q6: false,
+        q7: false, q8: true, q9: false, q10: false, q11: true, q12: false,
+        q13: false, q14: true, q15: false, q16: true, q17: true, q18: false,
+        q19: true, q20: false, q21: false, q22: true, q23: true, q24: false
       },
       result_operation: {
-        q1: true, q2: true, q3: false, q4: false, q5: false, q6: false,
-        q7: false, q8: false, q9: false, q10: false, q11: false, q12: true
+        q1: false, q2: false, q3: true, q4: true, q5: false, q6: false,
+        q7: true, q8: false, q9: false, q10: false, q11: false, q12: true,
+        q13: true, q14: false, q15: true, q16: false, q17: false, q18: true,
+        q19: false, q20: true, q21: false, q22: false, q23: true, q24: true
       }
     };
 
@@ -552,10 +578,31 @@
       return probabilities;
     }
 
-    function getTopCategories(scores) {
-      return Object.entries(scores)
-        .sort((a, b) => b[1] - a[1])
-        .map(([key]) => key);
+    function calculateEntropy(probabilities) {
+      return Object.values(probabilities).reduce((entropy, probability) => {
+        if (probability <= 0) return entropy;
+        return entropy - probability * Math.log2(probability);
+      }, 0);
+    }
+
+    function normalizeDistribution(distribution) {
+      const total = Object.values(distribution).reduce((sum, value) => sum + value, 0) || 1;
+      const normalized = {};
+      Object.entries(distribution).forEach(([key, value]) => {
+        normalized[key] = value / total;
+      });
+      return normalized;
+    }
+
+    function posteriorByAnswer(probabilities, qid, answer) {
+      const weighted = {};
+      Object.entries(probabilities).forEach(([category, probability]) => {
+        const expectedYes = categoryProfiles[category][qid];
+        const expectedAnswer = expectedYes ? 'yes' : 'no';
+        const likelihood = answer === expectedAnswer ? ANSWER_RELIABILITY : (1 - ANSWER_RELIABILITY);
+        weighted[category] = probability * likelihood;
+      });
+      return normalizeDistribution(weighted);
     }
 
     function chooseNextQuestionId() {
@@ -564,9 +611,7 @@
 
       const scores = getCategoryScores();
       const probabilities = getCategoryProbabilities(scores);
-      const top = getTopCategories(scores);
-      const top1 = top[0];
-      const top2 = top[1];
+      const currentEntropy = calculateEntropy(probabilities);
 
       let bestQuestion = unanswered[0].id;
       let bestScore = -Infinity;
@@ -574,14 +619,27 @@
       unanswered.forEach(question => {
         const qid = question.id;
         let pYes = 0;
+        let pNo = 0;
 
         Object.entries(probabilities).forEach(([category, probability]) => {
-          if (categoryProfiles[category][qid]) pYes += probability;
+          const expectedYes = categoryProfiles[category][qid];
+          if (expectedYes) {
+            pYes += probability * ANSWER_RELIABILITY;
+            pNo += probability * (1 - ANSWER_RELIABILITY);
+          } else {
+            pYes += probability * (1 - ANSWER_RELIABILITY);
+            pNo += probability * ANSWER_RELIABILITY;
+          }
         });
 
-        const uncertainty = 1 - Math.abs(2 * pYes - 1);
-        const topDisagreement = (categoryProfiles[top1][qid] === categoryProfiles[top2][qid]) ? 0 : 1;
-        const score = uncertainty + 0.25 * topDisagreement;
+        const yesPosterior = posteriorByAnswer(probabilities, qid, 'yes');
+        const noPosterior = posteriorByAnswer(probabilities, qid, 'no');
+        const expectedEntropy =
+          pYes * calculateEntropy(yesPosterior) +
+          pNo * calculateEntropy(noPosterior);
+        const infoGain = currentEntropy - expectedEntropy;
+        const halfSplitBonus = 1 - Math.abs(pYes - 0.5) * 2;
+        const score = infoGain + 0.15 * halfSplitBonus;
 
         if (score > bestScore) {
           bestScore = score;
@@ -600,10 +658,11 @@
       if (allNoSoFar) return false;
       if (answeredCount < MIN_QUESTIONS_FOR_RESULT) return false;
 
-      const sorted = Object.values(scores).sort((a, b) => b - a);
+      const probabilities = getCategoryProbabilities(scores);
+      const sorted = Object.values(probabilities).sort((a, b) => b - a);
       const best = sorted[0] ?? 0;
       const second = sorted[1] ?? 0;
-      return (best - second) >= CONFIDENCE_THRESHOLD;
+      return best >= CONFIDENCE_TOP_PROB && (best - second) >= CONFIDENCE_MARGIN;
     }
 
     function determineResult() {
@@ -741,19 +800,23 @@
 
     // ── Events ────────────────────────────────────────────
     $('btn-start').addEventListener('click', () => {
-      currentQuestionId = questions[0].id;
       Object.keys(answers).forEach(key => delete answers[key]);
-      renderQuestion(currentQuestionId);
+      const firstQuestionId = chooseNextQuestionId() || questions[0].id;
+      currentQuestionId = firstQuestionId;
+      renderQuestion(firstQuestionId);
     });
     $('btn-retry').addEventListener('click', () => {
-      currentQuestionId = questions[0].id;
       Object.keys(answers).forEach(key => delete answers[key]);
       show('screen-start');
     });
     $('btn-other').addEventListener('click', () => renderAllResults());
     $('btn-back-from-all').addEventListener('click', () => {
       if (lastResult) renderResult(lastResult);
-      else renderQuestion(questions[0].id);
+      else {
+        const firstQuestionId = chooseNextQuestionId() || questions[0].id;
+        currentQuestionId = firstQuestionId;
+        renderQuestion(firstQuestionId);
+      }
     });
   </script>
 </body>
