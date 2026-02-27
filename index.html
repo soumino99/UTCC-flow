@@ -91,45 +91,28 @@
     }
 
     /* ─── Question screen ──────────────────── */
-    .progress-bar-wrap {
-      height: 4px;
-      background: var(--cream-dark);
-      border-radius: 99px;
-      margin-bottom: 28px;
-      overflow: hidden;
-    }
-    .progress-bar {
-      height: 100%;
-      background: linear-gradient(90deg, var(--brown-mid), var(--gold));
-      border-radius: 99px;
-      transition: width var(--transition);
-    }
     .progress-meta {
-      margin-top: 8px;
+      margin-bottom: 16px;
       display: flex;
-      justify-content: space-between;
+        justify-content: space-between;
       align-items: center;
       font-size: 12px;
       color: var(--brown-light);
       font-weight: 700;
     }
-    .result-progress {
-      margin-bottom: 12px;
-    }
-    .result-progress .progress-bar-wrap {
-      margin-bottom: 8px;
-    }
-    .result-progress .progress-meta {
-      margin-top: 0;
-    }
-    .q-step {
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      color: var(--brown-light);
-      margin-bottom: 10px;
-      text-transform: uppercase;
-    }
+      .progress-bar-wrap {
+        height: 4px;
+        background: var(--cream-dark);
+        border-radius: 99px;
+        margin-bottom: 8px;
+        overflow: hidden;
+      }
+      .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, var(--brown-mid), var(--gold));
+        border-radius: 99px;
+        transition: width var(--transition);
+      }
     .q-text {
       font-size: 20px;
       font-weight: 700;
@@ -276,6 +259,39 @@
       align-items: center;
       gap: 12px;
     }
+    .result-jump {
+      margin-top: 20px;
+      background: var(--cream);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .result-jump h3 {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--brown-mid);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+    .jump-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .jump-btn {
+      padding: 8px 12px;
+      border: 1px solid var(--brown-light);
+      border-radius: 999px;
+      background: var(--white);
+      color: var(--brown-mid);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition);
+    }
+    .jump-btn:hover {
+      background: var(--cream-dark);
+    }
 
     /* ─── Divider ──────────────────────────── */
     .divider {
@@ -317,29 +333,18 @@
 
   <!-- ══════ QUESTION SCREEN ══════ -->
   <div class="card hidden" id="screen-question">
-    <div class="progress-bar-wrap">
-      <div class="progress-bar" id="progress-bar" style="width: 0%" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="アンケート進捗"></div>
-    </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progress-bar" style="width: 0%" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="質問進捗"></div>
+      </div>
     <div class="progress-meta">
-      <span id="progress-text">進捗 0%</span>
-      <span id="progress-count">0 / 3</span>
+      <span id="progress-count">0 / 10問</span>
     </div>
-    <p class="q-step" id="q-step"></p>
     <p class="q-text" id="q-text"></p>
     <div class="choices" id="choices"></div>
   </div>
 
   <!-- ══════ RESULT SCREEN ══════ -->
   <div class="card hidden" id="screen-result">
-    <div class="result-progress">
-      <div class="progress-bar-wrap">
-        <div class="progress-bar" style="width: 100%" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" aria-label="アンケート完了"></div>
-      </div>
-      <div class="progress-meta">
-        <span>回答完了</span>
-        <span>100%</span>
-      </div>
-    </div>
     <span class="result-icon" id="result-icon"></span>
     <p class="result-label">診断結果</p>
     <h2 id="result-title"></h2>
@@ -352,6 +357,10 @@
     <div class="result-actions">
       <button class="btn-primary" id="btn-retry">もう一度診断する</button>
       <button class="btn-secondary" id="btn-other">他の活動も見てみる</button>
+    </div>
+    <div class="result-jump">
+      <h3>他の結果へジャンプ</h3>
+      <div class="jump-list" id="result-jump-list"></div>
     </div>
   </div>
 
@@ -366,78 +375,94 @@
 
   <script>
     // ── Data ──────────────────────────────────────────────
+    const MAX_QUESTIONS = 10;
+
     const questions = [
-      {
-        id: 'q1',
-        step: '質問 1 / 3',
-        progress: 33,
-        text: 'コーヒーについて、今どのくらい知っていますか？',
-        choices: [
-          { label: 'あまり知らない、これから興味を持ちたい', next: 'result_teireikai' },
-          { label: 'ある程度知っている、もっと深めたい',    next: 'q2' }
-        ]
-      },
-      {
-        id: 'q2',
-        step: '質問 2 / 3',
-        progress: 66,
-        text: '新しいカフェを開拓したり、\nカフェ巡りをするのが好きですか？',
-        choices: [
-          { label: 'はい！カフェが大好き、いろんな店に行きたい', next: 'result_cafe' },
-          { label: 'カフェより自分でコーヒーを作る方が好き',     next: 'q3' }
-        ]
-      },
-      {
-        id: 'q3',
-        step: '質問 3 / 3',
-        progress: 100,
-        text: 'ラテアートに挑戦してみたい、\nまたはもっと上手くなりたいですか？',
-        choices: [
-          { label: 'ぜひやってみたい！ラテアートに憧れる', next: 'result_lateart' },
-          { label: 'まずはコーヒーの基礎知識から学びたい', next: 'result_teireikai' }
-        ]
-      }
+      { id: 'q1', text: 'コーヒーそのものは好き？' },
+      { id: 'q2', text: '苦味のあるブラックも楽しめる？' },
+      { id: 'q3', text: '豆・抽出・焙煎の知識を増やしたい？' },
+      { id: 'q4', text: '味や香りの違いを言語化して共有したい？' },
+      { id: 'q5', text: '家でコーヒーを淹れる習慣を作りたい？' },
+      { id: 'q6', text: 'ハンドドリップを継続して練習したい？' },
+      { id: 'q7', text: 'エスプレッソやラテを自分で作りたい？' },
+      { id: 'q8', text: '焙煎（生豆から）に取り組みたい？' },
+      { id: 'q9', text: '新しいカフェを開拓するのが好き？' },
+      { id: 'q10', text: '学祭のような場を運営側で作ってみたい？' }
     ];
 
     const results = {
       result_teireikai: {
         icon: '📚',
-        title: '定例会に参加してみよう！',
-        tagline: 'コーヒーの世界に飛び込む最初の一歩。\n知識ゼロでも大歓迎、みんなと一緒に学べます。',
+        title: '定例会',
+        tagline: '色々やる。初心者向けから玄人向けまで。\nコーヒーに詳しくなりたい方にぜひ。',
         details: [
-          'コーヒーの種類・産地・焙煎など基礎知識を楽しく学べる',
-          '毎週メンバーが集まって試飲しながら語り合う',
-          '初心者も多く、気軽に参加できる雰囲気',
-          'コーヒー好きな仲間づくりにもぴったり'
+          '基礎から応用まで幅広いテーマを扱える',
+          '抽出・豆・焙煎などを横断して学べる',
+          '初心者から上級者まで同じ場で成長できる',
+          '迷ったらまず参加しやすい中心的な活動'
         ]
       },
       result_cafe: {
         icon: '🗺️',
-        title: 'カフェ巡りに参加してみよう！',
-        tagline: '東京の素敵なカフェを仲間と一緒に開拓しよう。\n新しい発見がきっと待っています。',
+        title: 'カフェ巡り',
+        tagline: 'カフェを巡る。\n場所は都内から鎌倉等まで及ぶことも。',
         details: [
-          '東京都内のこだわりカフェを少人数でめぐる活動',
-          'おいしいコーヒーを飲みながらカフェの雰囲気を満喫',
-          '新しいカフェの情報交換や開拓が好きな人に最適',
-          '気軽に参加できて、会話も弾む！'
+          '新しい店舗の開拓を楽しめる',
+          '店ごとの雰囲気や味の違いを体感できる',
+          '街歩きしながら気軽に参加しやすい',
+          '外での活動が好きな人に向いている'
         ]
       },
-      result_lateart: {
-        icon: '🎨',
-        title: 'ラテアート会に参加してみよう！',
-        tagline: 'ミルクでアートを描く、クリエイティブな体験を。\n初心者からプロ志向まで楽しめます。',
+      result_roast: {
+        icon: '🔥',
+        title: '焙煎会',
+        tagline: '豆を煎る。\nやるならはじめから最後まで、とことんやりぬきたいタイプのあなたに。',
         details: [
-          'エスプレッソマシンを使ったラテアートを練習',
-          '初心者からでも丁寧にレクチャー',
-          'ハートやリーフなど定番から応用デザインまで',
-          '作ったラテアートを写真に撮ってSNS映えも◎'
+          '生豆から仕上げまで深く取り組める',
+          '焙煎度と風味の関係を実践で学べる',
+          '試行錯誤を重ねる面白さがある',
+          'とことん探究したい人向けの活動'
+        ]
+      },
+      result_espresso: {
+        icon: '🎨',
+        title: 'エスプレッソ会',
+        tagline: 'ラテアート、ティラミス等。\nカフェでしか飲めない・食べられないメニューを自分で再現できる。',
+        details: [
+          'エスプレッソ抽出とミルク技術を実践できる',
+          'ラテアート練習は無限大（ハートからスワンまで）',
+          'アレンジドリンクやスイーツにも挑戦できる',
+          '再現性と表現力の両方を磨ける'
+        ]
+      },
+      result_seminar: {
+        icon: '🧠',
+        title: 'セミナー',
+        tagline: '不定期開催。\n本格派の店舗で実践的な知識が学べます。',
+        details: [
+          '専門店ならではの視点を吸収できる',
+          '実践に直結する知識を学べる',
+          '普段の活動では得にくい刺激がある',
+          '理論と現場感の両方を深められる'
+        ]
+      },
+      result_operation: {
+        icon: '🎪',
+        title: '各種運営',
+        tagline: 'イベント企画まで携われる！\n提供だけでなく、場づくり全体に関われます。',
+        details: [
+          '企画・準備・当日運営まで経験できる',
+          'チーム連携で大きな場を作る力がつく',
+          '活動全体を支える役割に挑戦できる',
+          'UTCCの魅力を形にしたい人に向いている'
         ]
       }
     };
 
     // ── State ─────────────────────────────────────────────
-    let currentQuestion = 'q1';
+    let currentQuestionIndex = 0;
     let lastResult = null;
+    const answers = {};
 
     // ── Helpers ───────────────────────────────────────────
     const $ = id => document.getElementById(id);
@@ -453,28 +478,125 @@
       el.style.animation = '';
     }
 
-    function renderQuestion(qId) {
-      const q = questions.find(x => x.id === qId);
+    function renderQuestion(index) {
+      const q = questions[index];
       if (!q) return;
-      currentQuestion = qId;
-      const currentIndex = questions.findIndex(x => x.id === qId) + 1;
-      const totalQuestions = questions.length;
-      $('q-step').textContent = q.step;
+      currentQuestionIndex = index;
+      const step = index + 1;
+        const percent = Math.round((step / MAX_QUESTIONS) * 100);
       $('q-text').textContent = q.text;
-      $('progress-bar').style.width = q.progress + '%';
-      $('progress-bar').setAttribute('aria-valuenow', String(q.progress));
-      $('progress-text').textContent = `進捗 ${q.progress}%`;
-      $('progress-count').textContent = `${currentIndex} / ${totalQuestions}`;
+        $('progress-bar').style.width = percent + '%';
+        $('progress-bar').setAttribute('aria-valuenow', String(percent));
+      $('progress-count').textContent = `${step} / ${MAX_QUESTIONS}問`;
       const choicesEl = $('choices');
       choicesEl.innerHTML = '';
-      q.choices.forEach(choice => {
+
+      [
+        { id: 'yes', label: 'Yes' },
+        { id: 'no', label: 'No' }
+      ].forEach(choice => {
         const btn = document.createElement('button');
         btn.className = 'choice-btn';
         btn.textContent = choice.label;
-        btn.addEventListener('click', () => navigate(choice.next));
+        btn.addEventListener('click', () => answerQuestion(choice.id));
         choicesEl.appendChild(btn);
       });
       show('screen-question');
+    }
+
+    function determineResult() {
+      const isYes = key => answers[key] === 'yes';
+
+      const score = {
+        result_teireikai: 0,
+        result_cafe: 0,
+        result_roast: 0,
+        result_espresso: 0,
+        result_seminar: 0,
+        result_operation: 0
+      };
+
+      if (isYes('q1')) {
+        score.result_teireikai += 1;
+        score.result_seminar += 1;
+        score.result_cafe += 1;
+        score.result_espresso += 1;
+        score.result_roast += 1;
+      } else {
+        score.result_operation += 1;
+      }
+
+      if (isYes('q2')) {
+        score.result_seminar += 2;
+        score.result_teireikai += 1;
+      } else {
+        score.result_cafe += 1;
+        score.result_espresso += 1;
+      }
+
+      if (isYes('q3')) {
+        score.result_teireikai += 2;
+        score.result_seminar += 2;
+      }
+      if (isYes('q4')) {
+        score.result_seminar += 3;
+        score.result_teireikai += 1;
+      }
+      if (isYes('q5')) {
+        score.result_teireikai += 1;
+        score.result_espresso += 1;
+      }
+      if (isYes('q6')) {
+        score.result_teireikai += 3;
+      }
+      if (isYes('q7')) {
+        score.result_espresso += 4;
+      }
+      if (isYes('q8')) {
+        score.result_roast += 5;
+        score.result_seminar += 1;
+      }
+      if (isYes('q9')) {
+        score.result_cafe += 4;
+      }
+      if (isYes('q10')) {
+        score.result_operation += 5;
+        score.result_teireikai += 1;
+      }
+
+      if (isYes('q3') && isYes('q4')) score.result_seminar += 2;
+      if (isYes('q5') && isYes('q6')) score.result_teireikai += 2;
+      if (isYes('q7') && !isYes('q2')) score.result_espresso += 1;
+      if (isYes('q8') && isYes('q3')) score.result_roast += 1;
+      if (!isYes('q1') && isYes('q9') && !isYes('q10')) score.result_cafe += 2;
+      if (!isYes('q1') && isYes('q10')) score.result_operation += 2;
+
+      const tieOrder = [
+        'result_operation',
+        'result_roast',
+        'result_espresso',
+        'result_cafe',
+        'result_seminar',
+        'result_teireikai'
+      ];
+
+      let best = tieOrder[0];
+      tieOrder.forEach(key => {
+        if (score[key] > score[best]) best = key;
+      });
+      return best;
+    }
+
+    function answerQuestion(choiceId) {
+      const q = questions[currentQuestionIndex];
+      answers[q.id] = choiceId;
+
+      if (currentQuestionIndex < MAX_QUESTIONS - 1) {
+        renderQuestion(currentQuestionIndex + 1);
+        return;
+      }
+
+      renderResult(determineResult());
     }
 
     function renderResult(resultId) {
@@ -491,6 +613,18 @@
         li.textContent = d;
         ul.appendChild(li);
       });
+
+      const jumpList = $('result-jump-list');
+      jumpList.innerHTML = '';
+      Object.entries(results).forEach(([id, data]) => {
+        if (id === resultId) return;
+        const button = document.createElement('button');
+        button.className = 'jump-btn';
+        button.textContent = `${data.icon} ${data.title}`;
+        button.addEventListener('click', () => renderResult(id));
+        jumpList.appendChild(button);
+      });
+
       show('screen-result');
     }
 
@@ -516,23 +650,21 @@
       show('screen-all');
     }
 
-    function navigate(target) {
-      if (target.startsWith('q')) {
-        renderQuestion(target);
-      } else {
-        renderResult(target);
-      }
-    }
-
     // ── Events ────────────────────────────────────────────
-    $('btn-start').addEventListener('click', () => renderQuestion('q1'));
+    $('btn-start').addEventListener('click', () => {
+      currentQuestionIndex = 0;
+      Object.keys(answers).forEach(key => delete answers[key]);
+      renderQuestion(0);
+    });
     $('btn-retry').addEventListener('click', () => {
-      renderQuestion('q1');
+      currentQuestionIndex = 0;
+      Object.keys(answers).forEach(key => delete answers[key]);
+      renderQuestion(0);
     });
     $('btn-other').addEventListener('click', () => renderAllResults());
     $('btn-back-from-all').addEventListener('click', () => {
       if (lastResult) renderResult(lastResult);
-      else renderQuestion('q1');
+      else renderQuestion(0);
     });
   </script>
 </body>
