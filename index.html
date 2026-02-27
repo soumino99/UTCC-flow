@@ -91,23 +91,26 @@
     }
 
     /* ─── Question screen ──────────────────── */
+    .confidence-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 12px;
+    }
+    .confidence-face {
+      font-size: 44px;
+      line-height: 1;
+      filter: drop-shadow(0 2px 6px rgba(62, 39, 35, 0.15));
+    }
     .progress-meta {
       margin-bottom: 16px;
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       align-items: center;
       font-size: 12px;
       color: var(--brown-light);
       font-weight: 700;
-    }
-    .progress-status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .confidence-face {
-      font-size: 18px;
-      line-height: 1;
     }
       .progress-bar-wrap {
         height: 4px;
@@ -342,14 +345,13 @@
 
   <!-- ══════ QUESTION SCREEN ══════ -->
   <div class="card hidden" id="screen-question">
+    <div class="confidence-panel">
+      <span class="confidence-face" id="confidence-face">🤔</span>
+    </div>
       <div class="progress-bar-wrap">
         <div class="progress-bar" id="progress-bar" style="width: 0%" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="質問進捗"></div>
       </div>
     <div class="progress-meta">
-      <div class="progress-status">
-        <span class="confidence-face" id="confidence-face">🤔</span>
-        <span id="confidence-text">確信度 17%</span>
-      </div>
       <span id="progress-count">0問回答</span>
     </div>
     <p class="q-text" id="q-text"></p>
@@ -723,7 +725,6 @@
       $('progress-bar').style.width = percent + '%';
       $('progress-bar').setAttribute('aria-valuenow', String(percent));
       $('confidence-face').textContent = confidence.emoji;
-      $('confidence-text').textContent = `確信度 ${confidence.percent}%`;
       $('progress-count').textContent = `${answeredCount}問回答`;
       const choicesEl = $('choices');
       choicesEl.innerHTML = '';
