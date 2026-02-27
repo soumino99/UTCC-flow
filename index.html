@@ -337,7 +337,7 @@
         <div class="progress-bar" id="progress-bar" style="width: 0%" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="質問進捗"></div>
       </div>
     <div class="progress-meta">
-      <span id="progress-count">0 / 10問</span>
+      <span id="progress-count">0 / 12問</span>
     </div>
     <p class="q-text" id="q-text"></p>
     <div class="choices" id="choices"></div>
@@ -375,20 +375,25 @@
 
   <script>
     // ── Data ──────────────────────────────────────────────
-    const MAX_QUESTIONS = 10;
+    const MAX_QUESTIONS = 12;
+    const MIN_QUESTIONS_FOR_RESULT = 6;
+    const CONFIDENCE_THRESHOLD = 3;
 
     const questions = [
       { id: 'q1', text: 'コーヒーそのものは好き？' },
-      { id: 'q2', text: '苦味のあるブラックも楽しめる？' },
-      { id: 'q3', text: '豆・抽出・焙煎の知識を増やしたい？' },
+      { id: 'q2', text: '初対面の人とも話せる場が好き？' },
+      { id: 'q3', text: 'コーヒーの理論を体系的に学びたい？' },
       { id: 'q4', text: '味や香りの違いを言語化して共有したい？' },
-      { id: 'q5', text: '家でコーヒーを淹れる習慣を作りたい？' },
-      { id: 'q6', text: 'ハンドドリップを継続して練習したい？' },
-      { id: 'q7', text: 'エスプレッソやラテを自分で作りたい？' },
-      { id: 'q8', text: '焙煎（生豆から）に取り組みたい？' },
-      { id: 'q9', text: '新しいカフェを開拓するのが好き？' },
-      { id: 'q10', text: '学祭のような場を運営側で作ってみたい？' }
+      { id: 'q5', text: '家で淹れる習慣を作りたい？' },
+      { id: 'q6', text: 'ハンドドリップの再現性を上げたい？' },
+      { id: 'q7', text: 'エスプレッソマシンに触れてみたい？' },
+      { id: 'q8', text: 'ラテアートを本気で練習したい？' },
+      { id: 'q9', text: '焙煎を最初から最後までやってみたい？' },
+      { id: 'q10', text: '新しいカフェを開拓するのが好き？' },
+      { id: 'q11', text: '競技会レベルのこだわりにも興味がある？' },
+      { id: 'q12', text: 'イベントを運営側で作る役割に興味がある？' }
     ];
+    const questionMap = Object.fromEntries(questions.map(q => [q.id, q]));
 
     const results = {
       result_teireikai: {
@@ -459,8 +464,35 @@
       }
     };
 
+    const categoryProfiles = {
+      result_teireikai: {
+        q1: true, q2: false, q3: true, q4: false, q5: true, q6: true,
+        q7: false, q8: false, q9: false, q10: false, q11: true, q12: false
+      },
+      result_cafe: {
+        q1: true, q2: true, q3: false, q4: false, q5: false, q6: false,
+        q7: false, q8: false, q9: false, q10: true, q11: false, q12: false
+      },
+      result_roast: {
+        q1: true, q2: false, q3: true, q4: false, q5: true, q6: false,
+        q7: false, q8: false, q9: true, q10: false, q11: true, q12: false
+      },
+      result_espresso: {
+        q1: true, q2: false, q3: false, q4: false, q5: true, q6: false,
+        q7: true, q8: true, q9: false, q10: false, q11: true, q12: false
+      },
+      result_seminar: {
+        q1: true, q2: false, q3: true, q4: true, q5: false, q6: false,
+        q7: false, q8: false, q9: false, q10: false, q11: true, q12: false
+      },
+      result_operation: {
+        q1: true, q2: true, q3: false, q4: false, q5: false, q6: false,
+        q7: false, q8: false, q9: false, q10: false, q11: false, q12: true
+      }
+    };
+
     // ── State ─────────────────────────────────────────────
-    let currentQuestionIndex = 0;
+    let currentQuestionId = questions[0].id;
     let lastResult = null;
     const answers = {};
 
@@ -478,15 +510,114 @@
       el.style.animation = '';
     }
 
-    function renderQuestion(index) {
-      const q = questions[index];
+    function getCategoryScores() {
+      const scores = Object.keys(categoryProfiles).reduce((acc, key) => {
+        acc[key] = 0;
+        return acc;
+      }, {});
+
+      Object.entries(answers).forEach(([qid, answer]) => {
+        Object.entries(categoryProfiles).forEach(([category, profile]) => {
+          const expectedYes = profile[qid];
+          if (expectedYes === undefined) return;
+          const expected = expectedYes ? 'yes' : 'no';
+          scores[category] += answer === expected ? 2 : -1;
+        });
+      });
+
+      return scores;
+    }
+
+    function getCategoryProbabilities(scores) {
+      const entries = Object.entries(scores);
+      const exps = entries.map(([, score]) => Math.exp(score));
+      const sumExp = exps.reduce((sum, value) => sum + value, 0) || 1;
+      const probabilities = {};
+      entries.forEach(([key], i) => {
+        probabilities[key] = exps[i] / sumExp;
+      });
+      return probabilities;
+    }
+
+    function getTopCategories(scores) {
+      return Object.entries(scores)
+        .sort((a, b) => b[1] - a[1])
+        .map(([key]) => key);
+    }
+
+    function chooseNextQuestionId() {
+      const unanswered = questions.filter(q => !(q.id in answers));
+      if (unanswered.length === 0) return null;
+
+      const scores = getCategoryScores();
+      const probabilities = getCategoryProbabilities(scores);
+      const top = getTopCategories(scores);
+      const top1 = top[0];
+      const top2 = top[1];
+
+      let bestQuestion = unanswered[0].id;
+      let bestScore = -Infinity;
+
+      unanswered.forEach(question => {
+        const qid = question.id;
+        let pYes = 0;
+
+        Object.entries(probabilities).forEach(([category, probability]) => {
+          if (categoryProfiles[category][qid]) pYes += probability;
+        });
+
+        const uncertainty = 1 - Math.abs(2 * pYes - 1);
+        const topDisagreement = (categoryProfiles[top1][qid] === categoryProfiles[top2][qid]) ? 0 : 1;
+        const score = uncertainty + 0.25 * topDisagreement;
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestQuestion = qid;
+        }
+      });
+
+      return bestQuestion;
+    }
+
+    function shouldFinish(scores) {
+      const answeredCount = Object.keys(answers).length;
+      if (answeredCount >= MAX_QUESTIONS) return true;
+      if (answeredCount < MIN_QUESTIONS_FOR_RESULT) return false;
+
+      const sorted = Object.values(scores).sort((a, b) => b - a);
+      const best = sorted[0] ?? 0;
+      const second = sorted[1] ?? 0;
+      return (best - second) >= CONFIDENCE_THRESHOLD;
+    }
+
+    function determineResult() {
+      const scores = getCategoryScores();
+      const tieOrder = [
+        'result_operation',
+        'result_roast',
+        'result_espresso',
+        'result_cafe',
+        'result_seminar',
+        'result_teireikai'
+      ];
+
+      let best = tieOrder[0];
+      tieOrder.forEach(key => {
+        if (scores[key] > scores[best]) best = key;
+      });
+      return best;
+    }
+
+    function renderQuestion(qId) {
+      const q = questionMap[qId];
       if (!q) return;
-      currentQuestionIndex = index;
-      const step = index + 1;
-        const percent = Math.round((step / MAX_QUESTIONS) * 100);
+      currentQuestionId = qId;
+      const answeredCount = Object.keys(answers).length;
+      const step = answeredCount + 1;
+      const percent = Math.round((step / MAX_QUESTIONS) * 100);
       $('q-text').textContent = q.text;
-        $('progress-bar').style.width = percent + '%';
-        $('progress-bar').setAttribute('aria-valuenow', String(percent));
+      $('progress-bar').style.width = percent + '%';
+      $('progress-bar').setAttribute('aria-valuenow', String(percent));
       $('progress-count').textContent = `${step} / ${MAX_QUESTIONS}問`;
       const choicesEl = $('choices');
       choicesEl.innerHTML = '';
@@ -504,99 +635,21 @@
       show('screen-question');
     }
 
-    function determineResult() {
-      const isYes = key => answers[key] === 'yes';
-
-      const score = {
-        result_teireikai: 0,
-        result_cafe: 0,
-        result_roast: 0,
-        result_espresso: 0,
-        result_seminar: 0,
-        result_operation: 0
-      };
-
-      if (isYes('q1')) {
-        score.result_teireikai += 1;
-        score.result_seminar += 1;
-        score.result_cafe += 1;
-        score.result_espresso += 1;
-        score.result_roast += 1;
-      } else {
-        score.result_operation += 1;
-      }
-
-      if (isYes('q2')) {
-        score.result_seminar += 2;
-        score.result_teireikai += 1;
-      } else {
-        score.result_cafe += 1;
-        score.result_espresso += 1;
-      }
-
-      if (isYes('q3')) {
-        score.result_teireikai += 2;
-        score.result_seminar += 2;
-      }
-      if (isYes('q4')) {
-        score.result_seminar += 3;
-        score.result_teireikai += 1;
-      }
-      if (isYes('q5')) {
-        score.result_teireikai += 1;
-        score.result_espresso += 1;
-      }
-      if (isYes('q6')) {
-        score.result_teireikai += 3;
-      }
-      if (isYes('q7')) {
-        score.result_espresso += 4;
-      }
-      if (isYes('q8')) {
-        score.result_roast += 5;
-        score.result_seminar += 1;
-      }
-      if (isYes('q9')) {
-        score.result_cafe += 4;
-      }
-      if (isYes('q10')) {
-        score.result_operation += 5;
-        score.result_teireikai += 1;
-      }
-
-      if (isYes('q3') && isYes('q4')) score.result_seminar += 2;
-      if (isYes('q5') && isYes('q6')) score.result_teireikai += 2;
-      if (isYes('q7') && !isYes('q2')) score.result_espresso += 1;
-      if (isYes('q8') && isYes('q3')) score.result_roast += 1;
-      if (!isYes('q1') && isYes('q9') && !isYes('q10')) score.result_cafe += 2;
-      if (!isYes('q1') && isYes('q10')) score.result_operation += 2;
-
-      const tieOrder = [
-        'result_operation',
-        'result_roast',
-        'result_espresso',
-        'result_cafe',
-        'result_seminar',
-        'result_teireikai'
-      ];
-
-      let best = tieOrder[0];
-      tieOrder.forEach(key => {
-        if (score[key] > score[best]) best = key;
-      });
-      return best;
-    }
-
     function answerQuestion(choiceId) {
-      const q = questions[currentQuestionIndex];
-      answers[q.id] = choiceId;
+      answers[currentQuestionId] = choiceId;
+      const scores = getCategoryScores();
 
-      if (currentQuestionIndex < MAX_QUESTIONS - 1) {
-        renderQuestion(currentQuestionIndex + 1);
+      if (shouldFinish(scores)) {
+        renderResult(determineResult());
         return;
       }
 
-      renderResult(determineResult());
+      const nextQuestionId = chooseNextQuestionId();
+      if (!nextQuestionId) {
+        renderResult(determineResult());
+        return;
+      }
+      renderQuestion(nextQuestionId);
     }
 
     function renderResult(resultId) {
@@ -652,19 +705,19 @@
 
     // ── Events ────────────────────────────────────────────
     $('btn-start').addEventListener('click', () => {
-      currentQuestionIndex = 0;
+      currentQuestionId = questions[0].id;
       Object.keys(answers).forEach(key => delete answers[key]);
-      renderQuestion(0);
+      renderQuestion(currentQuestionId);
     });
     $('btn-retry').addEventListener('click', () => {
-      currentQuestionIndex = 0;
+      currentQuestionId = questions[0].id;
       Object.keys(answers).forEach(key => delete answers[key]);
-      renderQuestion(0);
+      renderQuestion(currentQuestionId);
     });
     $('btn-other').addEventListener('click', () => renderAllResults());
     $('btn-back-from-all').addEventListener('click', () => {
       if (lastResult) renderResult(lastResult);
-      else renderQuestion(0);
+      else renderQuestion(questions[0].id);
     });
   </script>
 </body>
